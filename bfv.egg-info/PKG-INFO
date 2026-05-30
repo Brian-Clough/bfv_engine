@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: bfv
+Version: 1.0.0
+Summary: Bayesian Fair Value Framework Engine
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: pandas
