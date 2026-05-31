@@ -3,7 +3,7 @@ import numpy as np
 import os
 import sys
 
-# Force append project root path to handle module lookups
+# Append project root path to handle module lookups dynamically
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from bfv.statistics.execution import BetaBinomialExecutionModel
@@ -25,7 +25,7 @@ engine = BFVEngine(execution_model=exec_mod, permanence_model=perm_mod)
 optimizer = BFVPortfolioOptimizer(engine=engine)
 
 # Setup layout blocks
-col_sidebar, col_main = st.columns([1, 2])
+col_sidebar, col_main = st.columns()
 
 with col_sidebar:
     st.header("⚙️ 1. dMRV Sensor Inputs")
@@ -40,7 +40,7 @@ with col_sidebar:
     st.subheader("🔥 Permanence Risk (Weibull Hazard)")
     reversal_100yr = st.slider("100-Year Baseline Reversal Rate", 0.0, 0.5, 0.04, step=0.01)
     k_shape = st.slider("Weibull Curve Intensity (k Profile)", 0.5, 2.0, 1.4, step=0.1)
-    st.caption("k > 1.0 implies rising risk over time due to climate-driven feedback loops.")
+    st.caption("k > 1.0 implies rising risk over time due to climate feedback loops.")
     
     st.subheader("🔬 Science Risk Measurement (dMRV Variance)")
     science_mean = st.slider("Expected Core Science Confidence Mean", 0.5, 1.0, 0.88, step=0.01)
@@ -52,8 +52,8 @@ with col_sidebar:
 with col_main:
     st.header("🧮 2. Joint Bayesian Valuation Distribution")
     
-    # Generate parametric sampling representations based on dashboard inputs
-    mcmc_science = np.random.normal(loc=science_mean, scale=np.sqrt(science_var), size=2000).tolist()
+    # Generate parametric representation based on slider data
+    mcmc_science = np.random.normal(loc=science_mean, scale=np.sqrt(max(1e-6, science_var)), size=2000).tolist()
     
     spec = ProjectSpecification(
         project_id="live-demo-asset-01",
@@ -66,7 +66,7 @@ with col_main:
         co_benefits=co_benefit_mean
     )
     
-    # Fire the Monte Carlo mathematical engine
+    # Fire the Monte Carlo engine
     results = engine.calculate_fair_value(**spec.to_engine_inputs(), num_simulation_samples=2000)
     
     # Display top-level metric sheets
