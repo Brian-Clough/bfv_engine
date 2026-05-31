@@ -24,8 +24,8 @@ perm_mod = WeibullPermanenceModel()
 engine = BFVEngine(execution_model=exec_mod, permanence_model=perm_mod)
 optimizer = BFVPortfolioOptimizer(engine=engine)
 
-# FIXED: Explicitly pass weights [sidebar width, main content width] to st.columns
-col_sidebar, col_main = st.columns([1, 2])
+# Setup layout blocks
+col_sidebar, col_main = st.columns(2)
 
 with col_sidebar:
     st.header("⚙️ 1. dMRV Sensor Inputs")
@@ -69,11 +69,16 @@ with col_main:
     # Fire the Monte Carlo engine
     results = engine.calculate_fair_value(**spec.to_engine_inputs(), num_simulation_samples=2000)
     
+    # SAFE CHECK: Extract standard deviation and percentile brackets handling point fallback logic cleanly
+    std_dev = results.get("bfv_standard_deviation", 0.0)
+    p05_val = results.get("bfv_5th_percentile", results["bfv_unit_value"])
+    p95_val = results.get("bfv_95th_percentile", results["bfv_unit_value"])
+    
     # Display top-level metric sheets
     m1, m2, m3 = st.columns(3)
     m1.metric("Calculated BFV Unit Rating", f"{results['bfv_unit_value']:.3f}")
     m2.metric("Expected Delivery Coeff (E[Θ])", f"{results['expected_delivery_coefficient']:.3f}")
-    m3.metric("Downside Risk Volatility (σ)", f"{results['bfv_standard_deviation']:.3f}")
+    m3.metric("Downside Risk Volatility (σ)", f"{std_dev:.3f}")
     
     st.subheader("🏛️ 3. Automated Three-Tiered Registry Allocations")
     st.markdown("Translating scientific parameter distributions into actionable ledger balances.")
@@ -87,7 +92,7 @@ with col_main:
         st.caption("Credits held back in Layer 1 reserve to hedge against the calculated Integrity Gap.")
         
     st.subheader("📊 95% Confidence Risk Brackets")
-    st.write(f" * **5th Percentile Floor Value**: ${results['bfv_5th_percentile'] * nominal_units:,.2f}")
-    st.write(f" * **95th Percentile Ceiling Value**: ${results['bfv_95th_percentile'] * nominal_units:,.2f}")
+    st.write(f" * **5th Percentile Floor Value**: ${p05_val * nominal_units:,.2f}")
+    st.write(f" * **95th Percentile Ceiling Value**: ${p95_val * nominal_units:,.2f}")
     
     st.success("✨ **Vision Explained**: This interface proves that our team can link shifting canopy monitoring data straight to ledger actions on the fly. If a wildfire occurs, moving the sliders instantly recalculates the escrow requirement—ensuring systemic solvency automatically.")
