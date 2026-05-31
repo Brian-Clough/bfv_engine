@@ -24,8 +24,8 @@ perm_mod = WeibullPermanenceModel()
 engine = BFVEngine(execution_model=exec_mod, permanence_model=perm_mod)
 optimizer = BFVPortfolioOptimizer(engine=engine)
 
-# Setup layout blocks
-col_sidebar, col_main = st.columns()
+# FIXED: Explicitly pass weights [sidebar width, main content width] to st.columns
+col_sidebar, col_main = st.columns([1, 2])
 
 with col_sidebar:
     st.header("⚙️ 1. dMRV Sensor Inputs")
