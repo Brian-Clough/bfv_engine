@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import sys
 import os
 
@@ -41,16 +42,14 @@ with tab1:
 
     if "Industrial IFM" in selected_project:
         project_id, project_type = "ifm-forestry-404", "Industrial IFM (Forestry)"
-        # FIXED: Pure Python list literal initialization to prevent syntax roadblocks
-        milestones = [1] * 18 + [0] * 2
+        milestones = * 18 + * 2
         rate_100yr, k_shape = 0.04, 1.3
         science_input = {"mean": 0.85, "variance": 0.002}
         co_benefits = 0.04
         description_text = "**Scenario Dynamics (IFM):** Proven operational history showing strong milestone delivery. However, it is exposed to an increasing wildfire hazard trajectory over time ($k = 1.3$). Scientific carbon baseline models carry moderate remote-sensing measurement error variance."
     elif "Blue Carbon" in selected_project:
         project_id, project_type = "mangrove-coastal-03", "Blue Carbon (Mangrove Restoration)"
-        # FIXED: Pure Python list literal initialization
-        milestones = [1] * 4 + [0] * 3
+        milestones = * 4 + * 3
         rate_100yr, k_shape = 0.02, 1.0
         np.random.seed(42)
         science_input = np.random.normal(loc=0.74, scale=0.08, size=2000).tolist()
@@ -58,8 +57,7 @@ with tab1:
         description_text = "**Scenario Dynamics (Blue Carbon):** Volatile early-stage performance execution history combined with significant scientific estimation uncertainty. However, it provides highly stable long-term permanence physics and a massive environmental co-benefit scalar ($\Omega = +0.22$)."
     else: 
         project_id, project_type = "dac-removal-001", "Frontier Direct Air Capture (DAC)"
-        # FIXED: Pure Python list literal initialization
-        milestones = [1] * 14
+        milestones = * 14
         rate_100yr, k_shape, science_input, co_benefits = 0.0, 1.0, 0.98, 0.0
         description_text = "**Scenario Dynamics (DAC):** High-cost technical removal infrastructure demonstrating near-perfect milestone delivery and absolute permanence stability ($P(P) = 1.00$). Carbon verification is locked down via localized digital hardware metering with zero auxiliary co-benefit premiums."
 
@@ -74,13 +72,21 @@ with tab1:
         elif isinstance(science_input, list): display_science_mean = float(np.mean(science_input))
         else: display_science_mean = float(science_input)
 
-        st.markdown("#### **Execution Probability $P(E)$**")
-        st.success(f"**Expected Mean: {results['p_execution_mean']:.3f}**")
-        st.markdown("#### **Scientific Confidence $P(S)$**")
-        st.success(f"**Expected Mean: {display_science_mean:.3f}**")
-        st.markdown("#### **Permanence Probability $P(P)$**")
-        st.success(f"**Expected Mean: {results['p_permanence_mean']:.3f}**")
-        st.markdown("#### **Ecosystem Co-Benefits Scalar $\\\\Omega$**")
+        def render_risk_pillar(label, score):
+            if score <= 0.50:
+                color, text = "🔴", "HIGH RISK DISPERSION"
+            elif score <= 0.75:
+                color, text = "🟡", "MODERATE VARIANCE BOUNDS"
+            else:
+                color, text = "🟢", "SECURE UNDERWRITING FLOOR"
+            st.markdown(f"#### {color} **{label}: {score:.3f}** (`{text}`)")
+            st.progress(min(1.0, max(0.0, float(score))))
+
+        render_risk_pillar("Execution Probability P(E)", results['p_execution_mean'])
+        render_risk_pillar("Scientific Confidence P(S)", display_science_mean)
+        render_risk_pillar("Permanence Probability P(P)", results['p_permanence_mean'])
+
+        st.markdown("#### 🌿 **Ecosystem Co-Benefits Scalar $\\Omega$**")
         st.success(f"**Symmetric Scalar Value: {co_benefits:+.2f}**")
 
     with col_right:
@@ -95,12 +101,17 @@ with tab1:
             plot_data = results["_raw_bfv_distribution"]
         else:
             np.random.seed(42)
-            plot_data = np.random.normal(loc=results["bfv_unit_value"], scale=0.006, size=2000)
+            plot_data = np.random.normal(loc=results["bfv_unit_value"], scale=0.005, size=2000)
             
-        counts, bin_edges = np.histogram(plot_data, bins=25, density=True)
-        chart_matrix = np.atleast_2d(counts).T
-        st.bar_chart(data=chart_matrix)
-        st.caption("Bayesian PDF curve illustrating localized valuation certainty. Narrow profiles indicate engineering precision; wide profiles indicate field data variance.")
+        counts, bin_edges = np.histogram(plot_data, bins=15, density=True)
+        
+        bin_labels = [f"{bin_edges[i]:.2f}-{bin_edges[i+1]:.2f}" for i in range(len(counts))]
+        df_chart = pd.DataFrame({
+            "Probability Density": counts
+        }, index=bin_labels)
+        
+        st.bar_chart(df_chart, y_label="Density Curve Intensity")
+        st.caption("Bayesian PDF curve illustrating localized valuation certainty. X-Axis represents explicit BFV Value intervals.")
 
         st.write("---")
         st.subheader("🏛️ Automated Token Issuance Directive")
@@ -147,10 +158,7 @@ with tab3:
     with c2:
         st.subheader("💼 Optimized Strategic Allocations")
         optimizer = BFVPortfolioOptimizer(engine=engine)
-        # FIXED: Enforced structured array parameters to ensure a perfect compile pass across variables
-        milestones_dac = [1] * 14
-        milestones_nat = [1] * 18 + [0] * 2
-        milestones_blu = [1] * 4 + [0] * 3
+        milestones_dac, milestones_nat, milestones_blu = * 14, * 18 + * 2, * 4 + * 3
         s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, milestones_dac, 0.0, 1.0, 0.98, 0.0)
         s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, milestones_nat, 0.04, 1.4, {"mean": 0.85, "variance": 0.002}, 0.05)
         s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, milestones_blu, 0.02, 1.1, 0.75, 0.25)
