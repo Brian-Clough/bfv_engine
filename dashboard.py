@@ -1,4 +1,3 @@
-# Save this block directly as your updated dashboard layout
 import streamlit as st
 import numpy as np
 import sys
@@ -63,7 +62,7 @@ with tab1:
         project_type = "Industrial IFM (Forestry)"
         
         # 18 successful milestones on time, 2 delays -> P(E) expected mean = 0.833
-        milestones = [1]*18 + [0]*2
+        milestones = [1] * 18 + [0] * 2
         # Near-term baseline risk of 4% under an increasing climate hazard curve (k=1.4)
         rate_100yr = 0.04
         k_shape = 1.4
@@ -81,7 +80,7 @@ with tab1:
         project_type = "Blue Carbon (Mangrove Restoration)"
         
         # 4 successful milestones, 3 delays -> P(E) expected mean = 0.545
-        milestones = [1]*4 + [0]*3
+        milestones = [1] * 4 + [0] * 3
         # Low near-term risk (2%), stable constant trajectory (k=1.1)
         rate_100yr = 0.02
         k_shape = 1.1
@@ -101,7 +100,7 @@ with tab1:
         project_type = "Frontier Direct Air Capture (DAC)"
         
         # 12 successful milestones on time, 0 delays -> P(E) expected mean = 0.875
-        milestones = [1]*12
+        milestones = [1] * 12
         # Absolute structural permanence, zero reversal possibility over 1000-year anchor
         rate_100yr = 0.0
         k_shape = 1.0
@@ -135,10 +134,8 @@ with tab1:
         st.caption("Derived via a Bayesian Beta-Binomial conjugate update over binary milestone history metrics.")
         
         st.markdown(f"#### **Scientific Confidence $P(S)$**")
-        if isinstance(science_input, (int, float)):
-            st.success(f"**Expected Mean: {results['p_science_mean']:.3f}** (Point Estimate)")
-        else:
-            st.success(f"**Expected Mean: {results['p_science_mean']:.3f}** (Probabilistic Vector Mapping)")
+        # FIXED: Look up engine results key using correct engine format 'p_science'
+        st.success(f"**Expected Mean: {results['p_science']:.3f}**")
         st.caption("Reflects baseline remote-sensing carbon quantification accuracy and data measurement error variance.")
         
         st.markdown(f"#### **Permanence Probability $P(P)$**")
@@ -194,10 +191,83 @@ with tab1:
         st.markdown(f"🛡️ **95% Confidence Portfolio Asset Floor Value:** `{p05_val * BASELINE_NOMINAL_UNITS:,.2f} Risk-Adjusted Tons`")
 
 with tab2:
-    st.header("The Three-Tiered Dynamic Uncertainty Bank")
-    st.markdown("Detailed registry architecture blueprints will be rendered here.")
+    st.header("🏛️ The Three-Tiered Dynamic Uncertainty Bank")
+    st.markdown(
+        "Demonstrating how a Registry Secretariat manages systemic solvency balance sheets. "
+        "When an asset undergoes an active change (e.g., performance updates or hazard events), "
+        "credits are programmatically re-balanced across our multi-tiered risk stack."
+    )
+    
+    st.write("---")
+    
+    # Render the Three Tiers with structural metrics based on the active selection
+    st.subheader(f"Active Systemic Ledger Balance Breakdown: {project_type}")
+    
+    t1, t2, t3 = st.columns(3)
+    
+    with t1:
+        st.info("### 📈 Layer 1: Project Escrow")
+        st.markdown(f"**Reserved Balance:** `{results['escrow_retained_units']:,.2f} Credits`")
+        st.caption("Holds back an asset-specific fraction matching the calculated Integrity Gap ($1 - BFV$) to insulate buyers from forward delivery defaults.")
+
+    with t2:
+        # Calculate a mock pooled allocation (e.g., 10% tax of the safety escrow shifted into Layer 2)
+        l2_buffer = results['escrow_retained_units'] * 0.10
+        st.success("### 🤝 Layer 2: Central Buffer Pool")
+        st.markdown(f"**Pooled Contribution:** `{l2_buffer:,.2f} Credits`")
+        st.caption("A mutualized cross-project liquidity pool designed to absorb localized project shocks by extending credit bridge loans to underperforming assets.")
+
+    with t3:
+        st.warning("### 🛡️ Layer 3: Insurance Backstop")
+        st.markdown("**Status:** `Standby Contingent Capital Locked`")
+        st.caption("External systemic capital injections (commercial reinsurance or sovereign guarantees) that activate only if lower layers face exhaustion.")
+
+    st.write("---")
+    st.success(
+        "💡 **Talking Point for the Director:** This framework transforms the registry from a passive, static ledger "
+        "into an active, credit-solvency state machine. Our dMRV platform can feed raw monitoring logs straight to this stack, "
+        "automatically releasing credits to market circulation or absorbing them into reserves to protect buyer integrity without administrative lag."
+    )
 
 with tab3:
-    st.header("Commercial Capital Allocation Sandbox")
-    st.markdown("Detailed portfolio optimization parameters will be rendered here.")
+    st.header("📈 Commercial Capital Allocation Sandbox")
+    st.markdown(
+        "How the Secretariat helps institutional carbon investors minimize downside delivery risk. "
+        "This engine runs a joint Monte Carlo search to optimize a **$10,000,000 budget** across decoupled credit cost curves."
+    )
+    
+    st.write("---")
+    
+    c1, c2 = st.columns([1, 1.2], gap="large")
+    with c1:
+        st.subheader("💵 Financial Price Parameter Matrix")
+        st.markdown("Adjust these commercial prices to see how the optimizer re-balances capital weights to preserve volumetric risk-adjusted asset returns:")
+        price_dac = st.slider("Frontier DAC Removal Credit Cost ($/Ton)", 200, 600, 450)
+        price_nature = st.slider("Industrial Forestry Credit Cost ($/Ton)", 10, 50, 18)
+        price_blue = st.slider("Blue Carbon Mangrove Credit Cost ($/Ton)", 20, 100, 35)
+        
+    with c2:
+        st.subheader("💼 Optimized Strategic Allocations")
+        optimizer = BFVPortfolioOptimizer(engine=engine)
+        
+        # Instantiate 3 baseline specifications to optimize across
+        s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, *12, 0.0, 1.0, 0.98, 0.0)
+        s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, *18 + *2, 0.04, 1.4, {"mean": 0.88, "variance": 0.003}, 0.05)
+        s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, *4 + *3, 0.02, 1.1, 0.75, 0.25)
+        
+        opt_res = optimizer.optimize_allocation(
+            [s_dac, s_nat, s_blu], 
+            total_budget=10000000.0, 
+            project_prices={"dac": price_dac, "nat": price_nature, "blu": price_blue}
+        )
+        
+        # Display the results programmatically
+        for pid, alloc in opt_res["portfolio_allocation_breakdown"].items():
+            st.info(
+                f"### **{alloc['asset_type']}**\\n"
+                f" * **Budget Weight:** `{alloc['budget_weight_percentage']}%`\\n"
+                f" * **Capital Committed:** `${alloc['capital_allocated_dollars']:,}`"
+            )
+            
+        st.caption("Allocation weights are derived on the fly by maximizing the ratio of forward expected BFV yield to downside 95th percentile Value-at-Risk (VaR).")
 
