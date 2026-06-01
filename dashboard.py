@@ -42,16 +42,14 @@ with tab1:
 
     if "Industrial IFM" in selected_project:
         project_id, project_type = "ifm-forestry-404", "Industrial IFM (Forestry)"
-        # FIXED: Pre-evaluated array literal block to bypass compile-time shorthand exceptions
-        milestones = [1] * 18 + [0] * 2
+        milestones = * 18 + * 2
         rate_100yr, k_shape = 0.04, 1.3
         science_input = {"mean": 0.85, "variance": 0.002}
         co_benefits = 0.04
         description_text = "**Scenario Dynamics (IFM):** Proven operational history showing strong milestone delivery. However, it is exposed to an increasing wildfire hazard trajectory over time ($k = 1.3$). Scientific carbon baseline models carry moderate remote-sensing measurement error variance."
     elif "Blue Carbon" in selected_project:
         project_id, project_type = "mangrove-coastal-03", "Blue Carbon (Mangrove Restoration)"
-        # FIXED: Pre-evaluated array literal block
-        milestones = [1] * 4 + [0] * 3
+        milestones = * 4 + * 3
         rate_100yr, k_shape = 0.02, 1.0
         np.random.seed(42)
         science_input = np.random.normal(loc=0.74, scale=0.08, size=2000).tolist()
@@ -59,8 +57,7 @@ with tab1:
         description_text = "**Scenario Dynamics (Blue Carbon):** Volatile early-stage performance execution history combined with significant scientific estimation uncertainty. However, it provides highly stable long-term permanence physics and a massive environmental co-benefit scalar ($\Omega = +0.22$)."
     else: 
         project_id, project_type = "dac-removal-001", "Frontier Direct Air Capture (DAC)"
-        # FIXED: Pre-evaluated array literal block
-        milestones = [1] * 14
+        milestones = * 14
         rate_100yr, k_shape, science_input, co_benefits = 0.0, 1.0, 0.98, 0.0
         description_text = "**Scenario Dynamics (DAC):** High-cost technical removal infrastructure demonstrating near-perfect milestone delivery and absolute permanence stability ($P(P) = 1.00$). Carbon verification is locked down via localized digital hardware metering with zero auxiliary co-benefit premiums."
 
@@ -76,12 +73,9 @@ with tab1:
         else: display_science_mean = float(science_input)
 
         def render_risk_pillar(label, score):
-            if score <= 0.50:
-                color, text = "🔴", "HIGH RISK DISPERSION"
-            elif score <= 0.75:
-                color, text = "🟡", "MODERATE VARIANCE BOUNDS"
-            else:
-                color, text = "🟢", "SECURE UNDERWRITING FLOOR"
+            if score <= 0.50: color, text = "🔴", "HIGH RISK DISPERSION"
+            elif score <= 0.75: color, text = "🟡", "MODERATE VARIANCE BOUNDS"
+            else: color, text = "🟢", "SECURE UNDERWRITING FLOOR"
             st.markdown(f"#### {color} **{label}: {score:.3f}** (`{text}`)")
             st.progress(min(1.0, max(0.0, float(score))))
 
@@ -107,12 +101,8 @@ with tab1:
             plot_data = np.random.normal(loc=results["bfv_unit_value"], scale=0.005, size=2000)
             
         counts, bin_edges = np.histogram(plot_data, bins=15, density=True)
-        
         bin_labels = [f"{bin_edges[i]:.2f}-{bin_edges[i+1]:.2f}" for i in range(len(counts))]
-        df_chart = pd.DataFrame({
-            "Probability Density": counts
-        }, index=bin_labels)
-        
+        df_chart = pd.DataFrame({"Probability Density": counts}, index=bin_labels)
         st.bar_chart(df_chart, y_label="Density Curve Intensity")
         st.caption("Bayesian PDF curve illustrating localized valuation certainty. X-Axis represents explicit BFV Value intervals.")
 
@@ -126,26 +116,48 @@ with tab1:
         st.markdown(f"🛡️ **95% Confidence Portfolio Asset Floor Value:** `{p05_val * BASELINE_NOMINAL_UNITS:,.2f} Risk-Adjusted Tons`")
 
 with tab2:
-    st.header("🏛️ The Three-Tiered Dynamic Uncertainty Bank")
-    st.markdown("Demonstrating how a Registry Secretariat manages systemic solvency balance sheets. When an asset undergoes an active change, credits are programmatically re-balanced across our multi-tiered risk stack.")
+    st.header("🏛️ The Three-Tiered Dynamic Uncertainty Bank & Solvency Ledger")
+    st.markdown("This master dashboard aggregates all registered assets under the Secretariat umbrella. It acts as a **systemic risk clearing house**, monitoring portfolio-wide reserves to guarantee market liquidity is backed 1-to-1 by true risk-adjusted carbon volumes.")
     st.write("---")
-    st.subheader(f"Active Systemic Ledger Balance Breakdown: {project_type}")
-    t1, t2, t3 = st.columns(3)
-    with t1:
-        st.info("### 📈 Layer 1: Project Escrow")
-        st.markdown(f"**Reserved Balance:** `{results['escrow_retained_units']:,.2f} Credits`")
-        st.caption("Holds back an asset-specific fraction matching the calculated Integrity Gap ($1 - BFV$) to insulate buyers from forward default.")
-    with t2:
-        l2_buffer = results['escrow_retained_units'] * 0.10
-        st.success("### 🤝 Layer 2: Central Buffer Pool")
-        st.markdown(f"**Pooled Contribution:** `{l2_buffer:,.2f} Credits`")
-        st.caption("A mutualized cross-project liquidity pool designed to absorb localized project shocks by extending credit bridge loans.")
-    with t3:
-        st.warning("### 🛡️ Layer 3: Insurance Backstop")
-        st.markdown("**Status:** `Standby Contingent Capital Locked`")
-        st.caption("External systemic capital injections (commercial reinsurance) that activate only if lower layers face exhaustion.")
+
+    spec_ifm = ProjectSpecification("ifm", "Industrial IFM", BASELINE_NOMINAL_UNITS, *18 + *2, 0.04, 1.3, {"mean": 0.85, "variance": 0.002}, 0.04)
+    spec_blu = ProjectSpecification("blu", "Blue Carbon", BASELINE_NOMINAL_UNITS, *4 + *3, 0.02, 1.0, np.random.normal(loc=0.74, scale=0.08, size=1000).tolist(), 0.22)
+    spec_dac = ProjectSpecification("dac", "DAC Removal", BASELINE_NOMINAL_UNITS, *14, 0.0, 1.0, 0.98, 0.0)
+
+    res_ifm = engine.calculate_fair_value(**spec_ifm.to_engine_inputs(), num_simulation_samples=1000)
+    res_blu = engine.calculate_fair_value(**spec_blu.to_engine_inputs(), num_simulation_samples=1000)
+    res_dac = engine.calculate_fair_value(**spec_dac.to_engine_inputs(), num_simulation_samples=1000)
+
+    total_nominal_portfolio = BASELINE_NOMINAL_UNITS * 3
+    total_circulating_portfolio = res_ifm['issuable_bfv_units'] + res_blu['issuable_bfv_units'] + res_dac['issuable_bfv_units']
+    total_escrow_portfolio = res_ifm['escrow_retained_units'] + res_blu['escrow_retained_units'] + res_dac['escrow_retained_units']
+    total_l2_buffer_pool = total_escrow_portfolio * 0.10
+    systemic_solvency_ratio = ((total_escrow_portfolio + total_l2_buffer_pool) / total_nominal_portfolio) * 100
+
+    st.subheader("📊 Macro Portfolio Solvency Summary")
+    sm1, sm2, sm3, sm4 = st.columns(4)
+    sm1.metric("Total Portfolio Nominal Capacity", f"{total_nominal_portfolio:,.0f} Tons")
+    sm2.metric("Aggregate Circulating Market Supply", f"{total_circulating_portfolio:,.2f} Credits")
+    sm3.metric("Total Active Escrow Reserve Pool", f"{total_escrow_portfolio:,.2f} Credits", delta="Layer 1 Reserve")
+    sm4.metric("Layer 2 Central Insurance Fund", f"{total_l2_buffer_pool:,.2f} Credits", delta="Mutual Buffer")
+
+    st.markdown(f"🛡️ **Secretariat Systemic Solvency Cushion Ratio:** `{systemic_solvency_ratio:.2f}%` ── *Reserves securely out-pace portfolio risk thresholds.*")
     st.write("---")
-    st.success("💡 **Talking Point for the Director:** This framework transforms the registry from a passive, static ledger into an active, credit-solvency state machine driven by live dMRV monitoring logs.")
+
+    st.subheader("📋 Project-by-Project Active Ledger Sheets")
+    pl1, pl2, pl3 = st.columns(3)
+    with pl1:
+        st.info("### 🌲 Project: Industrial IFM")
+        st.markdown(f"**Asset ID:** `ifm-forestry-404`\\n * **BFV Unit Rating:** `{res_ifm['bfv_unit_value']:.4f}`\\n * **Circulating Balance:** `{res_ifm['issuable_bfv_units']:,.2f}`\\n * **Layer 1 Escrow Vault:** `{res_ifm['escrow_retained_units']:,.2f}`\\n * **L2 Buffer Contribution:** `{res_ifm['escrow_retained_units']*0.10:,.2f}`")
+        st.caption("Status: Active. Subject to yearly remote-sensing canopy error re-audits.")
+    with pl2:
+        st.success("### 🦀 Project: Blue Carbon")
+        st.markdown(f"**Asset ID:** `mangrove-coastal-03`\\n * **BFV Unit Rating:** `{res_blu['bfv_unit_value']:.4f}`\\n * **Circulating Balance:** `{res_blu['issuable_bfv_units']:,.2f}`\\n * **Layer 1 Escrow Vault:** `{res_blu['escrow_retained_units']:,.2f}`\\n * **L2 Buffer Contribution:** `{res_blu['escrow_retained_units']*0.10:,.2f}`")
+        st.caption("Status: Active. Carrying high co-benefit offsets shielding baseline execution delays.")
+    with pl3:
+        st.warning("### ⚙️ Project: Frontier DAC")
+        st.markdown(f"**Asset ID:** `dac-removal-001`\\n * **BFV Unit Rating:** `{res_dac['bfv_unit_value']:.4f}`\\n * **Circulating Balance:** `{res_dac['issuable_bfv_units']:,.2f}`\\n * **Layer 1 Escrow Vault:** `{res_dac['escrow_retained_units']:,.2f}`\\n * **L2 Buffer Contribution:** `{res_dac['escrow_retained_units']*0.10:,.2f}`")
+        st.caption("Status: Active. Technical removal parameters carrying perfect point permanence tracking stability.")
 
 with tab3:
     st.header("📈 Commercial Capital Allocation Sandbox")
@@ -161,10 +173,7 @@ with tab3:
     with c2:
         st.subheader("💼 Optimized Strategic Allocations")
         optimizer = BFVPortfolioOptimizer(engine=engine)
-        # FIXED: Explicit enclosed list initialization format to guarantee compile mechanics
-        milestones_dac = [1] * 14
-        milestones_nat = [1] * 18 + [0] * 2
-        milestones_blu = [1] * 4 + [0] * 3
+        milestones_dac, milestones_nat, milestones_blu = * 14, * 18 + * 2, * 4 + * 3
         s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, milestones_dac, 0.0, 1.0, 0.98, 0.0)
         s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, milestones_nat, 0.04, 1.4, {"mean": 0.85, "variance": 0.002}, 0.05)
         s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, milestones_blu, 0.02, 1.1, 0.75, 0.25)
