@@ -1,9 +1,8 @@
 import streamlit as st
 import numpy as np
-import os
 import sys
+import os
 
-# Append project root path to handle module lookups dynamically
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from bfv.statistics.execution import BetaBinomialExecutionModel
@@ -13,86 +12,58 @@ from bfv.models.specs import ProjectSpecification
 from bfv.portfolio.optimizer import BFVPortfolioOptimizer
 
 st.set_page_config(page_title="BFV Translation Layer Engine", layout="wide", page_icon="🌍")
-
 st.title("🌍 BFV Framework: Institutional Translation Layer")
-st.markdown("### Connecting dMRV Scientific Uncertainty to Dynamic Ledger State Operations")
+st.markdown("### Core Engine Linking dMRV Scientific Outputs to Management and Registry Operations")
 st.write("---")
 
-# Initialize backend models
-exec_mod = BetaBinomialExecutionModel()
-perm_mod = WeibullPermanenceModel()
-engine = BFVEngine(execution_model=exec_mod, permanence_model=perm_mod)
-optimizer = BFVPortfolioOptimizer(engine=engine)
+engine = BFVEngine(BetaBinomialExecutionModel(), WeibullPermanenceModel())
+tab1, tab2, tab3 = st.tabs(["📊 Use Case 1: Single-Asset Rating Engine", "🏛️ Use Case 2: Three-Tiered Registry Solvency", "📈 Use Case 3: Investor Portfolio Optimizer"])
 
-# Setup layout blocks
-col_sidebar, col_main = st.columns(2)
-
-with col_sidebar:
-    st.header("⚙️ 1. dMRV Sensor Inputs")
-    project_type = st.selectbox("Project Archetype", ["Industrial IFM (Forestry)", "Blue Carbon (Mangroves)"])
-    nominal_units = st.number_input("Nominal Project Capital Pool ($)", min_value=10000, max_value=10000000, value=1000000, step=50000)
-    
-    st.subheader("📊 Execution Risk (Milestones)")
-    successes = st.slider("Successful Milestones (On-Time)", 0, 30, 18)
-    delays = st.slider("Delayed / Failed Milestones", 0, 10, 2)
-    mock_milestones = [1] * successes + [0] * delays
-    
-    st.subheader("🔥 Permanence Risk (Weibull Hazard)")
-    reversal_100yr = st.slider("100-Year Baseline Reversal Rate", 0.0, 0.5, 0.04, step=0.01)
-    k_shape = st.slider("Weibull Curve Intensity (k Profile)", 0.5, 2.0, 1.4, step=0.1)
-    st.caption("k > 1.0 implies rising risk over time due to climate feedback loops.")
-    
-    st.subheader("🔬 Science Risk Measurement (dMRV Variance)")
-    science_mean = st.slider("Expected Core Science Confidence Mean", 0.5, 1.0, 0.88, step=0.01)
-    science_var = st.slider("dMRV Remote Sensing Variance", 0.0, 0.02, 0.003, step=0.001)
-    
-    st.subheader("🌱 Symmetric Co-Benefits (Omega)")
-    co_benefit_mean = st.slider("Co-Benefit Value Scalar", -0.2, 0.5, 0.05, step=0.01)
-
-with col_main:
-    st.header("🧮 2. Joint Bayesian Valuation Distribution")
-    
-    # Generate parametric representation based on slider data
-    mcmc_science = np.random.normal(loc=science_mean, scale=np.sqrt(max(1e-6, science_var)), size=2000).tolist()
-    
-    spec = ProjectSpecification(
-        project_id="live-demo-asset-01",
-        project_type=project_type,
-        nominal_units=float(nominal_units),
-        execution_milestones=mock_milestones,
-        historical_reversal_rate_100yr=reversal_100yr,
-        k_shape=k_shape,
-        science_risk=mcmc_science,
-        co_benefits=co_benefit_mean
-    )
-    
-    # Fire the Monte Carlo engine
-    results = engine.calculate_fair_value(**spec.to_engine_inputs(), num_simulation_samples=2000)
-    
-    # SAFE CHECK: Extract standard deviation and percentile brackets handling point fallback logic cleanly
-    std_dev = results.get("bfv_standard_deviation", 0.0)
-    p05_val = results.get("bfv_5th_percentile", results["bfv_unit_value"])
-    p95_val = results.get("bfv_95th_percentile", results["bfv_unit_value"])
-    
-    # Display top-level metric sheets
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Calculated BFV Unit Rating", f"{results['bfv_unit_value']:.3f}")
-    m2.metric("Expected Delivery Coeff (E[Θ])", f"{results['expected_delivery_coefficient']:.3f}")
-    m3.metric("Downside Risk Volatility (σ)", f"{std_dev:.3f}")
-    
-    st.subheader("🏛️ 3. Automated Three-Tiered Registry Allocations")
-    st.markdown("Translating scientific parameter distributions into actionable ledger balances.")
-    
-    l1, l2 = st.columns(2)
-    with l1:
-        st.info(f"### 📈 Approved Circulating Pool\n**${results['issuable_bfv_units']:,.2f}**")
-        st.caption("Liquid credits approved for immediate trading based on current delivery confidence parameters.")
-    with l2:
-        st.warning(f"### 🔒 Retained in Risk Escrow\n**${results['escrow_retained_units']:,.2f}**")
-        st.caption("Credits held back in Layer 1 reserve to hedge against the calculated Integrity Gap.")
+with tab1:
+    st.header("Asset Risk Analysis & Verification Panel")
+    col1, col2 = st.columns(2)
+    with col1:
+        p_type = st.selectbox("Asset Archetype", ["Industrial IFM (Forestry)", "Blue Carbon (Mangroves)"])
+        nominal = st.number_input("Nominal Volume Capacity (Tons)", value=100000)
+        successes = st.slider("On-Time Milestones (Successes)", 0, 30, 20)
+        delays = st.slider("Delayed Milestones (Failed Events)", 0, 10, 2)
+        reversal = st.slider("100-Year Baseline Reversal Risk", 0.0, 0.4, 0.05)
+        k_shape = st.slider("Weibull Curve Intensity (k Profile)", 0.5, 2.0, 1.3)
+        science_mean = st.slider("Expected Core Science Accuracy Mean", 0.5, 1.0, 0.90)
+        science_var = st.slider("dMRV Canopy Measurement Variance", 0.0, 0.02, 0.002)
+        co_benefit = st.slider("Symmetric Co-Benefit Scalar (Omega)", -0.1, 0.4, 0.05)
+    with col2:
+        mock_milestones = [1] * successes + [0] * delays
+        mcmc_science = np.random.normal(loc=science_mean, scale=np.sqrt(max(1e-6, science_var)), size=1000).tolist()
+        spec = ProjectSpecification("demo-01", p_type, float(nominal), mock_milestones, reversal, k_shape, mcmc_science, co_benefit)
+        res = engine.calculate_fair_value(**spec.to_engine_inputs(), num_simulation_samples=1000)
         
-    st.subheader("📊 95% Confidence Risk Brackets")
-    st.write(f" * **5th Percentile Floor Value**: ${p05_val * nominal_units:,.2f}")
-    st.write(f" * **95th Percentile Ceiling Value**: ${p95_val * nominal_units:,.2f}")
-    
-    st.success("✨ **Vision Explained**: This interface proves that our team can link shifting canopy monitoring data straight to ledger actions on the fly. If a wildfire occurs, moving the sliders instantly recalculates the escrow requirement—ensuring systemic solvency automatically.")
+        std_dev = res.get("bfv_standard_deviation", 0.0)
+        p05_val = res.get("bfv_5th_percentile", res["bfv_unit_value"])
+        p95_val = res.get("bfv_95th_percentile", res["bfv_unit_value"])
+        
+        st.metric("Calculated BFV Unit Value", f"{res['bfv_unit_value']:.4f}")
+        st.metric("Downside Risk Volatility (σ)", f"{std_dev:.3f}")
+        st.info(f"### Approved Circulating Market Supply: {res['issuable_bfv_units']:,.2f} Units")
+        st.warning(f"### Retained in Layer 1 Safety Escrow: {res['escrow_retained_units']:,.2f} Units")
+
+with tab2:
+    st.header("The Three-Tiered Dynamic Uncertainty Bank")
+    st.markdown("* **Layer 1: Project Escrow** ── Holds back fraction matching calculated Integrity Gap ($1 - BFV$).\n* **Layer 2: Central Repository Buffer** ── Mutualized insurance pool to absorb localized project shocks.\n* **Layer 3: Insurance Backstop** ── External commercial reinsurance lines protecting macro solvency.")
+    st.success("💡 **Talking Point**: Framework transforms the registry from a passive, static ledger into an active, credit-solvency state machine driven by live dMRV monitoring logs.")
+
+with tab3:
+    st.header("Commercial Capital Allocation Sandbox")
+    c1, c2 = st.columns(2)
+    with c1:
+        price_dac = st.slider("DAC Removal Credit Cost ($/Ton)", 200, 600, 450)
+        price_nature = st.slider("Forestry Credit Cost ($/Ton)", 10, 50, 18)
+        price_blue = st.slider("Blue Carbon Credit Cost ($/Ton)", 20, 100, 35)
+    with col2:
+        optimizer = BFVPortfolioOptimizer(engine=engine)
+        s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, [1]*10, 0.0, 1.0, 0.99, 0.0)
+        s_nat = ProjectSpecification("nat", "Forestry", 1.0, [1]*15 + [0]*2, 0.05, 1.4, 0.88, 0.05)
+        s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, [1]*8 + [0]*2, 0.02, 1.1, 0.82, 0.20)
+        opt_res = optimizer.optimize_allocation([s_dac, s_nat, s_blu], total_budget=10000000.0, project_prices={"dac": price_dac, "nat": price_nature, "blu": price_blue})
+        for pid, alloc in opt_res["portfolio_allocation_breakdown"].items():
+            st.write(f" * **{alloc['asset_type']}** ── Allocation: {alloc['budget_weight_percentage']}% (${alloc['capital_allocated_dollars']:,})")
