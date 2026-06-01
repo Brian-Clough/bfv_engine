@@ -42,14 +42,16 @@ with tab1:
 
     if "Industrial IFM" in selected_project:
         project_id, project_type = "ifm-forestry-404", "Industrial IFM (Forestry)"
-        milestones = * 18 + * 2
+        # FIXED: Pre-evaluated array literal block to bypass compile-time shorthand exceptions
+        milestones = [1] * 18 + [0] * 2
         rate_100yr, k_shape = 0.04, 1.3
         science_input = {"mean": 0.85, "variance": 0.002}
         co_benefits = 0.04
         description_text = "**Scenario Dynamics (IFM):** Proven operational history showing strong milestone delivery. However, it is exposed to an increasing wildfire hazard trajectory over time ($k = 1.3$). Scientific carbon baseline models carry moderate remote-sensing measurement error variance."
     elif "Blue Carbon" in selected_project:
         project_id, project_type = "mangrove-coastal-03", "Blue Carbon (Mangrove Restoration)"
-        milestones = * 4 + * 3
+        # FIXED: Pre-evaluated array literal block
+        milestones = [1] * 4 + [0] * 3
         rate_100yr, k_shape = 0.02, 1.0
         np.random.seed(42)
         science_input = np.random.normal(loc=0.74, scale=0.08, size=2000).tolist()
@@ -57,7 +59,8 @@ with tab1:
         description_text = "**Scenario Dynamics (Blue Carbon):** Volatile early-stage performance execution history combined with significant scientific estimation uncertainty. However, it provides highly stable long-term permanence physics and a massive environmental co-benefit scalar ($\Omega = +0.22$)."
     else: 
         project_id, project_type = "dac-removal-001", "Frontier Direct Air Capture (DAC)"
-        milestones = * 14
+        # FIXED: Pre-evaluated array literal block
+        milestones = [1] * 14
         rate_100yr, k_shape, science_input, co_benefits = 0.0, 1.0, 0.98, 0.0
         description_text = "**Scenario Dynamics (DAC):** High-cost technical removal infrastructure demonstrating near-perfect milestone delivery and absolute permanence stability ($P(P) = 1.00$). Carbon verification is locked down via localized digital hardware metering with zero auxiliary co-benefit premiums."
 
@@ -158,7 +161,10 @@ with tab3:
     with c2:
         st.subheader("💼 Optimized Strategic Allocations")
         optimizer = BFVPortfolioOptimizer(engine=engine)
-        milestones_dac, milestones_nat, milestones_blu = * 14, * 18 + * 2, * 4 + * 3
+        # FIXED: Explicit enclosed list initialization format to guarantee compile mechanics
+        milestones_dac = [1] * 14
+        milestones_nat = [1] * 18 + [0] * 2
+        milestones_blu = [1] * 4 + [0] * 3
         s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, milestones_dac, 0.0, 1.0, 0.98, 0.0)
         s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, milestones_nat, 0.04, 1.4, {"mean": 0.85, "variance": 0.002}, 0.05)
         s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, milestones_blu, 0.02, 1.1, 0.75, 0.25)
