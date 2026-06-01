@@ -250,10 +250,14 @@ with tab3:
         st.subheader("💼 Optimized Strategic Allocations")
         optimizer = BFVPortfolioOptimizer(engine=engine)
         
-        # Instantiate 3 baseline specifications to optimize across
-        s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, *12, 0.0, 1.0, 0.98, 0.0)
-        s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, *18 + *2, 0.04, 1.4, {"mean": 0.88, "variance": 0.003}, 0.05)
-        s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, *4 + *3, 0.02, 1.1, 0.75, 0.25)
+        # FIXED: Enforced standard list instantiation inside bracket pairs to bypass compile exceptions
+        milestones_dac = [1] * 12
+        milestones_nat = [1] * 18 + [0] * 2
+        milestones_blu = [1] * 4 + [0] * 3
+        
+        s_dac = ProjectSpecification("dac", "DAC Removal", 1.0, milestones_dac, 0.0, 1.0, 0.98, 0.0)
+        s_nat = ProjectSpecification("nat", "Forestry (IFM)", 1.0, milestones_nat, 0.04, 1.4, {"mean": 0.88, "variance": 0.003}, 0.05)
+        s_blu = ProjectSpecification("blu", "Blue Carbon", 1.0, milestones_blu, 0.02, 1.1, 0.75, 0.25)
         
         opt_res = optimizer.optimize_allocation(
             [s_dac, s_nat, s_blu], 
@@ -264,8 +268,8 @@ with tab3:
         # Display the results programmatically
         for pid, alloc in opt_res["portfolio_allocation_breakdown"].items():
             st.info(
-                f"### **{alloc['asset_type']}**\\n"
-                f" * **Budget Weight:** `{alloc['budget_weight_percentage']}%`\\n"
+                f"### **{alloc['asset_type']}**\n"
+                f" * **Budget Weight:** `{alloc['budget_weight_percentage']}%`\n"
                 f" * **Capital Committed:** `${alloc['capital_allocated_dollars']:,}`"
             )
             
